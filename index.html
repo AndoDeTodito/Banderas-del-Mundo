@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia de Banderas FIFA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-global: #f3f4f6;
+            --bg-card: #ffffff;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --success: #10b981;
+            --danger: #ef4444;
+            --accent: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-global);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container {
+            background-color: var(--bg-card);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 24px;
+            padding: 32px 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Pantallas */
+        .screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Tipografías e Interfaz */
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        p.subtitle {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        /* HUD - Panel Superior */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .score-badge {
+            background-color: #eff6ff;
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        /* Barra de progreso / Tiempo */
+        .timer-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e5e7eb;
+            border-radius: 99px;
+            margin-bottom: 28px;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 99px;
+            transition: width 0.1s linear, background-color 0.3s ease;
+        }
+
+        /* Caja de la bandera */
+        .flag-wrapper {
+            width: 100%;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            margin-bottom: 28px;
+            padding: 12px;
+        }
+
+        .flag-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Botones de Opciones */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .btn-option {
+            width: 100%;
+            background-color: #fff;
+            color: var(--text-main);
+            border: 2px solid #e5e7eb;
+            padding: 16px 20px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        @media (hover: hover) {
+            .btn-option:hover {
+                border-color: var(--primary);
+                background-color: #f0f5ff;
+            }
+        }
+
+        /* Botones de acción principales */
+        .btn-action {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+            margin-top: 16px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-action:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Tabla de récords */
+        .leaderboard {
+            margin-top: 32px;
+            background-color: #f9fafb;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .leaderboard-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .leaderboard-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 4px;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .leaderboard-row:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* Estados de validación visual */
+        .correct {
+            background-color: var(--success) !important;
+            border-color: var(--success) !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background-color: var(--danger) !important;
+            border-color: var(--danger) !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="start-screen" class="screen active">
+            <h1>Banderas del Mundo</h1>
+            <p class="subtitle">Demuestra tu conocimiento identificando a las 211 asociaciones afiliadas a la FIFA. ¡Tienes 10 segundos por bandera!</p>
+            
+            <button class="btn-action" onclick="startGame()">Comenzar Juego</button>
+
+            <div class="leaderboard">
+                <div class="leaderboard-title">Mejores Puntajes (Top 3)</div>
+                <div id="leaderboard-rows">
+                    </div>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="hud">
+                <div>Aciertos</div>
+                <div class="score-badge" id="score-display">0</div>
+            </div>
+
+            <div class="timer-container">
+                <div id="timer-bar" class="timer-bar"></div>
+            </div>
+
+            <div class="flag-wrapper">
+                <img id="flag-image" src="" alt="Bandera a adivinar">
+            </div>
+
+            <div class="options-list" id="options-container">
+                </div>
+        </div>
+
+        <div id="gameover-screen" class="screen">
+            <h1 style="color: var(--danger);">Fin del Juego</h1>
+            <p class="subtitle" id="gameover-reason">Te has equivocado de bandera.</p>
+            
+            <div style="margin-bottom: 32px;">
+                <span style="font-size: 14px; color: var(--text-muted); font-weight: 500;">Puntaje Final</span>
+                <div style="font-size: 48px; font-weight: 800; color: var(--text-main);" id="final-score">0</div>
+            </div>
+
+            <button class="btn-action" onclick="showStartScreen()">Ir al menú principal</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Los 211 miembros plenos afiliados a la FIFA
+        const fifaCountries = [
+            {"code": "ar", "name": "Argentina"}, {"code": "bo", "name": "Bolivia"}, {"code": "br", "name": "Brasil"},
+            {"code": "cl", "name": "Chile"}, {"code": "co", "name": "Colombia"}, {"code": "ec", "name": "Ecuador"},
+            {"code": "py", "name": "Paraguay"}, {"code": "pe", "name": "Perú"}, {"code": "uy", "name": "Uruguay"},
+            {"code": "ve", "name": "Venezuela"}, {"code": "al", "name": "Albania"}, {"code": "de", "name": "Alemania"},
+            {"code": "ad", "name": "Andorra"}, {"code": "am", "name": "Armenia"}, {"code": "at", "name": "Austria"},
+            {"code": "az", "name": "Azerbaiyán"}, {"code": "be", "name": "Bélgica"}, {"code": "by", "name": "Bielorrusia"},
+            {"code": "ba", "name": "Bosnia y Herzegovina"}, {"code": "bg", "name": "Bulgaria"}, {"code": "cy", "name": "Chipre"},
+            {"code": "hr", "name": "Croacia"}, {"code": "dk", "name": "Dinamarca"}, {"code": "sk", "name": "Eslovaquia"},
+            {"code": "si", "name": "Eslovenia"}, {"code": "es", "name": "España"}, {"code": "ee", "name": "Estonia"},
+            {"code": "fi", "name": "Finlandia"}, {"code": "fr", "name": "Francia"}, {"code": "ge", "name": "Georgia"},
+            {"code": "gi", "name": "Gibraltar"}, {"code": "gr", "name": "Grecia"}, {"code": "hu", "name": "Hungría"},
+            {"code": "gb-eng", "name": "Inglaterra"}, {"code": "ie", "name": "Irlanda"}, {"code": "gb-nir", "name": "Irlanda del Norte"},
+            {"code": "is", "name": "Islandia"}, {"code": "fo", "name": "Islas Feroe"}, {"code": "il", "name": "Israel"},
+            {"code": "it", "name": "Italia"}, {"code": "kz", "name": "Kazajistán"}, {"code": "xk", "name": "Kosovo"},
+            {"code": "lv", "name": "Letonia"}, {"code": "li", "name": "Liechtenstein"}, {"code": "lt", "name": "Lituania"},
+            {"code": "lu", "name": "Luxemburgo"}, {"code": "mk", "name": "Macedonia del Norte"}, {"code": "mt", "name": "Malta"},
+            {"code": "md", "name": "Moldavia"}, {"code": "me", "name": "Montenegro"}, {"code": "no", "name": "Noruega"},
+            {"code": "nl", "name": "Países Bajos"}, {"code": "pl", "name": "Polonia"}, {"code": "pt", "name": "Portugal"},
+            {"code": "cz", "name": "República Checa"}, {"code": "ro", "name": "Rumania"}, {"code": "ru", "name": "Rusia"},
+            {"code": "sm", "name": "San Marino"}, {"code": "gb-sct", "name": "Escocia"}, {"code": "rs", "name": "Serbia"},
+            {"code": "se", "name": "Suecia"}, {"code": "ch", "name": "Suiza"}, {"code": "tr", "name": "Turquía"},
+            {"code": "ua", "name": "Ucrania"}, {"code": "gb-wls", "name": "Gales"}, {"code": "dz", "name": "Argelia"},
+            {"code": "ao", "name": "Angola"}, {"code": "bj", "name": "Benín"}, {"code": "bw", "name": "Botsuana"},
+            {"code": "bf", "name": "Burkina Faso"}, {"code": "bi", "name": "Burundi"}, {"code": "cv", "name": "Cabo Verde"},
+            {"code": "cm", "name": "Camerún"}, {"code": "cf", "name": "República Centroafricana"}, {"code": "td", "name": "Chad"},
+            {"code": "km", "name": "Comoras"}, {"code": "cg", "name": "Congo"}, {"code": "cd", "name": "República Democrática del Congo"},
+            {"code": "ci", "name": "Costa de Marfil"}, {"code": "eg", "name": "Egipto"}, {"code": "er", "name": "Eritrea"},
+            {"code": "sz", "name": "Esuatíni (Suazilandia)"}, {"code": "et", "name": "Etiopía"}, {"code": "ga", "name": "Gabón"},
+            {"code": "gm", "name": "Gambia"}, {"code": "gh", "name": "Ghana"}, {"code": "gn", "name": "Guinea"},
+            {"code": "gw", "name": "Guinea-Bisáu"}, {"code": "gq", "name": "Guinea Ecuatorial"}, {"code": "ke", "name": "Kenia"},
+            {"code": "ls", "name": "Lesoto"}, {"code": "lr", "name": "Liberia"}, {"code": "ly", "name": "Libia"},
+            {"code": "mg", "name": "Madagascar"}, {"code": "mw", "name": "Malaui"}, {"code": "ml", "name": "Malí"},
+            {"code": "ma", "name": "Marruecos"}, {"code": "mu", "name": "Mauricio"}, {"code": "mr", "name": "Mauritania"},
+            {"code": "mz", "name": "Mozambique"}, {"code": "na", "name": "Namibia"}, {"code": "ne", "name": "Níger"},
+            {"code": "ng", "name": "Nigeria"}, {"code": "rw", "name": "Ruanda"}, {"code": "st", "name": "Santo Tomé y Príncipe"},
+            {"code": "sn", "name": "Senegal"}, {"code": "sc", "name": "Seychelles"}, {"code": "sl", "name": "Sierra Leona"},
+            {"code": "so", "name": "Somalia"}, {"code": "za", "name": "Sudáfrica"}, {"code": "sd", "name": "Sudán"},
+            {"code": "ss", "name": "Sudán del Sur"}, {"code": "tz", "name": "Tanzania"}, {"code": "tg", "name": "Togo"},
+            {"code": "tn", "name": "Túnez"}, {"code": "ug", "name": "Uganda"}, {"code": "dj", "name": "Yibuti"},
+            {"code": "zm", "name": "Zambia"}, {"code": "zw", "name": "Zimbabue"}, {"code": "ai", "name": "Anguila"},
+            {"code": "ag", "name": "Antigua y Barbuda"}, {"code": "aw", "name": "Aruba"}, {"code": "bs", "name": "Bahamas"},
+            {"code": "bb", "name": "Barbados"}, {"code": "bz", "name": "Belice"}, {"code": "bm", "name": "Bermudas"},
+            {"code": "ca", "name": "Canadá"}, {"code": "ky", "name": "Islas Caimán"}, {"code": "cr", "name": "Costa Rica"},
+            {"code": "cu", "name": "Cuba"}, {"code": "cw", "name": "Curazao"}, {"code": "dm", "name": "Dominica"},
+            {"code": "sv", "name": "El Salvador"}, {"code": "us", "name": "Estados Unidos"}, {"code": "gd", "name": "Granada"},
+            {"code": "gt", "name": "Guatemala"}, {"code": "gy", "name": "Guyana"}, {"code": "ht", "name": "Haití"},
+            {"code": "hn", "name": "Honduras"}, {"code": "jm", "name": "Jamaica"}, {"code": "mx", "name": "México"},
+            {"code": "ms", "name": "Montserrat"}, {"code": "ni", "name": "Nicaragua"}, {"code": "pa", "name": "Panamá"},
+            {"code": "pr", "name": "Puerto Rico"}, {"code": "do", "name": "República Dominicana"}, {"code": "kn", "name": "San Cristóbal y Nieves"},
+            {"code": "vc", "name": "San Vicente y las Granadinas"}, {"code": "lc", "name": "Santa Lucía"},
+            {"code": "sr", "name": "Surinam"}, {"code": "tt", "name": "Trinidad y Tobago"}, {"code": "tc", "name": "Islas Turcas y Caicos"},
+            {"code": "vg", "name": "Islas Vírgenes Británicas"}, {"code": "vi", "name": "Islas Vírgenes de los EE. UU."},
+            {"code": "af", "name": "Afganistán"}, {"code": "au", "name": "Australia"}, {"code": "bh", "name": "Baréin"},
+            {"code": "bd", "name": "Bangladés"}, {"code": "bt", "name": "Bután"}, {"code": "bn", "name": "Brunéi"},
+            {"code": "kh", "name": "Camboya"}, {"code": "cn", "name": "China"}, {"code": "tw", "name": "China Taipéi (Taiwán)"},
+            {"code": "gu", "name": "Guam"}, {"code": "hk", "name": "Hong Kong"}, {"code": "in", "name": "India"},
+            {"code": "id", "name": "Indonesia"}, {"code": "ir", "name": "Irán"}, {"code": "iq", "name": "Irak"},
+            {"code": "jp", "name": "Japón"}, {"code": "jo", "name": "Jordania"}, {"code": "kg", "name": "Kirguistán"},
+            {"code": "kw", "name": "Kuwait"}, {"code": "la", "name": "Laos"}, {"code": "lb", "name": "Líbano"},
+            {"code": "mo", "name": "Macao"}, {"code": "my", "name": "Malasia"}, {"code": "mv", "name": "Maldivas"},
+            {"code": "mn", "name": "Mongolia"}, {"code": "mm", "name": "Myanmar"}, {"code": "np", "name": "Nepal"},
+            {"code": "kp", "name": "Corea del Norte"}, {"code": "om", "name": "Omán"}, {"code": "pk", "name": "Pakistán"},
+            {"code": "ps", "name": "Palestina"}, {"code": "ph", "name": "Filipinas"}, {"code": "qa", "name": "Catar"},
+            {"code": "sa", "name": "Arabia Saudita"}, {"code": "sg", "name": "Singapur"}, {"code": "kr", "name": "Corea del Sur"},
+            {"code": "lk", "name": "Sri Lanka"}, {"code": "sy", "name": "Siria"}, {"code": "tj", "name": "Tayikistán"},
+            {"code": "th", "name": "Tailandia"}, {"code": "tl", "name": "Timor Oriental"}, {"code": "tm", "name": "Turkmenistán"},
+            {"code": "ae", "name": "Emiratos Árabes Unidos"}, {"code": "uz", "name": "Uzbekistán"}, {"code": "vn", "name": "Vietnam"},
+            {"code": "ye", "name": "Yemen"}, {"code": "as", "name": "Samoa Americana"}, {"code": "ck", "name": "Islas Cook"},
+            {"code": "fj", "name": "Fiyi"}, {"code": "nz", "name": "Nueva Zelanda"}, {"code": "nc", "name": "Nueva Caledonia"},
+            {"code": "pg", "name": "Papúa Nueva Guinea"}, {"code": "ws", "name": "Samoa"}, {"code": "sb", "name": "Islas Salomón"},
+            {"code": "to", "name": "Tonga"}, {"code": "tv", "name": "Tuvalu"}, {"code": "vu", "name": "Vanuatu"}
+        ];
+
+        let score = 0;
+        let currentCountry = null;
+        let timerInterval = null;
+        let canAnswer = true;
+
+        // Iniciar el Leaderboard al cargar
+        updateLeaderboardDisplay();
+
+        function showStartScreen() {
+            switchScreen('start-screen');
+            updateLeaderboardDisplay();
+        }
+
+        function startGame() {
+            score = 0;
+            document.getElementById('score-display').innerText = score;
+            switchScreen('game-screen');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            canAnswer = true;
+            
+            // Elegir país correcto al azar
+            currentCountry = fifaCountries[Math.floor(Math.random() * fifaCountries.length)];
+            
+            // Asignar bandera desde flagcdn
+            const flagImg = document.getElementById('flag-image');
+            flagImg.src = `https://flagcdn.com/h240/${currentCountry.code}.png`;
+
+            // Construir opciones (1 correcta + 3 falsas)
+            let options = [currentCountry];
+            while (options.length < 4) {
+                let randomOpt = fifaCountries[Math.floor(Math.random() * fifaCountries.length)];
+                if (!options.some(opt => opt.code === randomOpt.code)) {
+                    options.push(randomOpt);
+                }
+            }
+            // Barajar opciones
+            options.sort(() => Math.random() - 0.5);
+
+            // Inyectar opciones en los botones
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerText = opt.name;
+                btn.onclick = () => checkAnswer(opt.code, btn);
+                container.appendChild(btn);
+            });
+
+            // Configurar barra de tiempo (10 segundos)
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = 'var(--primary)';
+
+            let startTime = Date.now();
+            clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                let timeElapsed = (Date.now() - startTime) / 1000;
+                let percentLeft = 100 - (timeElapsed / 10) * 100;
+
+                if (percentLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerBar.style.width = '0%';
+                    gameOver('¡Se agotó el tiempo!');
+                } else {
+                    timerBar.style.width = `${percentLeft}%`;
+                    if (percentLeft < 35) {
+                        timerBar.style.backgroundColor = 'var(--danger)';
+                    }
+                }
+            }, 50);
+        }
+
+        function checkAnswer(selectedCode, selectedBtn) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            clearInterval(timerInterval);
+
+            const buttons = document.querySelectorAll('.btn-option');
+
+            if (selectedCode === currentCountry.code) {
+                // Correcto
+                selectedBtn.classList.add('correct');
+                score++;
+                document.getElementById('score-display').innerText = score;
+                
+                // Transición sutil al siguiente país
+                setTimeout(nextQuestion, 600);
+            } else {
+                // Incorrecto
+                selectedBtn.classList.add('wrong');
+                // Revelar cuál era la correcta
+                buttons.forEach(btn => {
+                    // Vinculamos de manera simple buscando el texto de respuesta correcto
+                    if (fifaCountries.find(c => c.name === btn.innerText)?.code === currentCountry.code) {
+                        btn.classList.add('correct');
+                    }
+                });
+
+                setTimeout(() => {
+                    gameOver('Respuesta incorrecta.');
+                }, 1000);
+            }
+        }
+
+        function gameOver(reason) {
+            clearInterval(timerInterval);
+            document.getElementById('gameover-reason').innerText = reason;
+            document.getElementById('final-score').innerText = score;
+            saveHighScore(score);
+            switchScreen('gameover-screen');
+        }
+
+        // Gestión de Récords Locales (Top 3)
+        function saveHighScore(finalScore) {
+            let scores = JSON.parse(localStorage.getItem('fifa_flag_scores')) || [];
+            scores.push(finalScore);
+            scores.sort((a, b) => b - a);
+            let topThree = scores.slice(0, 3);
+            localStorage.setItem('fifa_flag_scores', JSON.stringify(topThree));
+        }
+
+        function updateLeaderboardDisplay() {
+            let scores = JSON.parse(localStorage.getItem('fifa_flag_scores')) || [];
+            const container = document.getElementById('leaderboard-rows');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 3; i++) {
+                const row = document.createElement('div');
+                row.className = 'leaderboard-row';
+                
+                const rankSpan = document.createElement('span');
+                rankSpan.className = 'rank';
+                rankSpan.innerText = `#${i + 1}`;
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.innerText = scores[i] !== undefined ? `${scores[i]} aciertos` : '—';
+
+                row.appendChild(rankSpan);
+                row.appendChild(scoreSpan);
+                container.appendChild(row);
+            }
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
